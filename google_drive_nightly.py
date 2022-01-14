@@ -17,21 +17,14 @@
 
 import argparse
 import os
-import sys
-from datetime import datetime
 import traceback
-import filecmp
-import shutil
 import time
 
-EXTRA_SYNC_CONFIG = "./extra_sync_folders.csv"
+from utilities.log import setup_logging, log_err
+from utilities.sync import sync_folders
 
-# log_error
-# logs error to both console and errlog
-def log_err(msg, errlog):
-    print(msg)
-    with open(errlog, "a") as o_stream:
-        print(msg, file=o_stream)
+SYNC_DIR = "./ToSync"
+EXTRA_SYNC_CONFIG = "./extra_sync_folders.csv"
 
 # parse_args
 def parse_args():
@@ -43,8 +36,8 @@ def parse_args():
 
 # main
 def main():
-    cur_datetime = datetime.now().strftime("%m%d%Y_%H%M%S")
-    errlog = "errlog_%s.txt" % cur_datetime
+    # setup logging
+    setup_logging()
 
     # Will catch all exceptions and log to file and console
     try:
@@ -56,11 +49,14 @@ def main():
             time.sleep(1)
 
         print("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
-        time.sleep(10)
+        # time.sleep(10)
+
+        # First copy all files in
+        sync_folders(SYNC_DIR, args.copy_location)
 
     except Exception:
         formatted_exc = traceback.format_exc()
-        log_err(formatted_exc, errlog)
+        log_err(formatted_exc)
 
 if __name__ == "__main__":
     main()
