@@ -2,3 +2,4 @@
 *.txt
 *.log
 *.csv
+*sync_started_*

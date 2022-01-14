@@ -19,6 +19,8 @@ import argparse
 import os
 import traceback
 import time
+import shutil
+from datetime import datetime
 
 from utilities.log import setup_logging, log_err
 from utilities.sync import sync_folders
@@ -51,8 +53,13 @@ def main():
         print("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
         # time.sleep(10)
 
-        # First copy all files in
+        # First copy all files in ToSync and move them to a separate dir (one time copies)
         sync_folders(SYNC_DIR, args.copy_location)
+
+        move_dir = "sync_started_%s" % datetime.now().strftime("%m%d%Y_%H%M%S")
+        os.makedirs(move_dir)
+        files_to_move = [f for f in os.listdir(SYNC_DIR) if f != ".gitignore"]
+        [shutil.move(os.path.join(SYNC_DIR, f), move_dir) for f in files_to_move]
 
     except Exception:
         formatted_exc = traceback.format_exc()
