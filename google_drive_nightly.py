@@ -25,8 +25,12 @@ from datetime import datetime
 from utilities.log import setup_logging, log_err
 from utilities.sync import sync_folders
 
-SYNC_DIR = "./ToSync"
-EXTRA_SYNC_CONFIG = "./extra_sync_folders.csv"
+# Get directory of this file
+THIS_DIR = os.path.split(__file__)[0]
+
+SYNC_DIR = os.path.join(THIS_DIR, "ToSync")
+EXTRA_SYNC_CONFIG = os.path.join(THIS_DIR, "extra_sync_folders.csv")
+MOVE_DIR = os.path.join(THIS_DIR, "sync_started_%s" % datetime.now().strftime("%m%d%Y_%H%M%S"))
 
 # parse_args
 def parse_args():
@@ -56,10 +60,10 @@ def main():
         # First copy all files in ToSync and move them to a separate dir (one time copies)
         sync_folders(SYNC_DIR, args.copy_location)
 
-        move_dir = "sync_started_%s" % datetime.now().strftime("%m%d%Y_%H%M%S")
-        os.makedirs(move_dir)
         files_to_move = [f for f in os.listdir(SYNC_DIR) if f != ".gitignore"]
-        [shutil.move(os.path.join(SYNC_DIR, f), move_dir) for f in files_to_move]
+        if(len(files_to_move) > 0):
+            os.makedirs(MOVE_DIR)
+            [shutil.move(os.path.join(SYNC_DIR, f), MOVE_DIR) for f in files_to_move]
 
     except Exception:
         formatted_exc = traceback.format_exc()
