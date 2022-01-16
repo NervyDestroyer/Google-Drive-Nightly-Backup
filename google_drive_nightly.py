@@ -17,13 +17,16 @@
 
 import argparse
 import os
+import sys
 import traceback
 import time
 import shutil
+import multiprocessing
 from datetime import datetime
 
-from utilities.log import setup_logging, log_err
+from utilities.log import setup_logging, log_msg
 from utilities.sync import sync_folders
+from utilities.gdrive_desktop import start_and_manage_gdrive
 
 # Get directory of this file
 THIS_DIR = os.path.split(__file__)[0]
@@ -36,25 +39,44 @@ MOVE_DIR = os.path.join(THIS_DIR, "sync_started_%s" % datetime.now().strftime("%
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-copy_location", type=str, default="G:/My Drive/", help="Location in Google Drive to copy files to start syncing")
+    parser.add_argument("-copy_location", type=str, default="G:/My Drive/", \
+        help="Location in Google Drive to copy files to start syncing")
+    parser.add_argument("--debug_manager", action="store_true", \
+        help="Runs the gdrive manager in debug mode that allows us to see errors printed to " \
+            "console. NOTE: Will not run correctly if used with a scheduler")
 
     return parser.parse_args()
 
 # main
 def main():
     # setup logging
-    setup_logging()
+    setup_logging("main")
 
     # Will catch all exceptions and log to file and console
     try:
         args = parse_args()
 
+        # If not in debug mode, run manager as a pythonw process so it is detached from our terminal
+        if(not args.debug_manager):
+            multiprocessing.set_executable(os.path.join(sys.exec_prefix, "pythonw.exe"))
+
+        # Get pipe for communicating heartbeats between parent and child so child knows when parent dies
+        child_conn, _ = multiprocessing.Pipe()
+
+        child = multiprocessing.Process(target=start_and_manage_gdrive, args=(child_conn, "C:/Program Files/Google/Drive File Stream/54.0.3.0/GoogleDriveFS.exe"))
+        child.start()
+        # test()
+
+        while True:
+            time.sleep(1)
+            log_msg("sleeping")
+
         # Wait for gdrive directory to exist (wait an additional 5 seconds afterwards just in case)
-        print("Sleeping until Gdrive directory exists...")
+        log_msg("Sleeping until Gdrive directory exists...")
         while(not os.path.exists(args.copy_location)):
             time.sleep(1)
 
-        print("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
+        log_msg("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
         # time.sleep(10)
 
         # First copy all files in ToSync and move them to a separate dir (one time copies)
@@ -67,7 +89,7 @@ def main():
 
     except Exception:
         formatted_exc = traceback.format_exc()
-        log_err(formatted_exc)
+        log_msg(formatted_exc)
 
 if __name__ == "__main__":
     main()

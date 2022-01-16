@@ -1,20 +1,26 @@
-from datetime import datetime
+import os
 
-ERRLOG = None
+# Get directory of this file
+LOG_DIR = "%s/.." % os.path.split(__file__)[0]
+
+LOGFILE = None
 
 # setup_logging
-# sets up error logging, should only be called once
-def setup_logging():
-    global ERRLOG
+# sets up logging, should only be called once
+def setup_logging(log_prefix):
+    global LOGFILE
 
-    cur_datetime = datetime.now().strftime("%m%d%Y_%H%M%S")
-    ERRLOG = "errlog_%s.txt" % cur_datetime
+    LOGFILE = "%s/log_%s.txt" % (LOG_DIR, log_prefix)
 
-# log_error
-# logs error to both console and errlog
-def log_err(msg):
-    global ERRLOG
+    # Open and clear out any existing log file
+    o_stream = open(LOGFILE, "w")
+    o_stream.close()
+
+# log_msg
+# logs msg to both console and log
+def log_msg(msg):
+    global LOGFILE
 
     print(msg)
-    with open(ERRLOG, "a") as o_stream:
+    with open(LOGFILE, "a") as o_stream:
         print(msg, file=o_stream)
