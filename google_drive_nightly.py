@@ -41,9 +41,9 @@ def parse_args():
 
     parser.add_argument("-copy_location", type=str, default="G:/My Drive/", \
         help="Location in Google Drive to copy files to start syncing")
-    parser.add_argument("--debug_manager", action="store_true", \
-        help="Runs the gdrive manager in debug mode that allows us to see errors printed to " \
-            "console. NOTE: Will not run correctly if used with a scheduler")
+    parser.add_argument("--debug", action="store_true", \
+        help="Runs the gdrive manager in debug mode. Must be used if running from a console such " \
+            "such as Powershell. Do not set if running with TaskScheduler.")
 
     return parser.parse_args()
 
@@ -57,19 +57,17 @@ def main():
         args = parse_args()
 
         # If not in debug mode, run manager as a pythonw process so it is detached from our terminal
-        if(not args.debug_manager):
+        if(not args.debug):
             multiprocessing.set_executable(os.path.join(sys.exec_prefix, "pythonw.exe"))
 
         # Get pipe for communicating heartbeats between parent and child so child knows when parent dies
-        child_conn, _ = multiprocessing.Pipe()
+        gdrive_conn, _ = multiprocessing.Pipe()
 
-        child = multiprocessing.Process(target=start_and_manage_gdrive, args=(child_conn, "C:/Program Files/Google/Drive File Stream/54.0.3.0/GoogleDriveFS.exe"))
-        child.start()
-        # test()
-
-        while True:
-            time.sleep(1)
-            log_msg("sleeping")
+        # This process will properly clean itself up after this process dies.
+        # NOTE: If debug is enabled, this process is tied to our terminal window which will not work
+        #   with TaskScheduler
+        gdrive_manager_proc = multiprocessing.Process(target=start_and_manage_gdrive, args=(gdrive_conn, "C:/Program Files/Google/Drive File Stream/54.0.3.0/GoogleDriveFS.exe"))
+        gdrive_manager_proc.start()
 
         # Wait for gdrive directory to exist (wait an additional 5 seconds afterwards just in case)
         log_msg("Sleeping until Gdrive directory exists...")
