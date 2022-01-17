@@ -75,7 +75,7 @@ def main():
             time.sleep(1)
 
         log_msg("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
-        # time.sleep(10)
+        time.sleep(10)
 
         # First copy all files in ToSync and move them to a separate dir (one time copies)
         sync_folders(SYNC_DIR, args.copy_location)
@@ -85,9 +85,15 @@ def main():
             os.makedirs(MOVE_DIR)
             [shutil.move(os.path.join(SYNC_DIR, f), MOVE_DIR) for f in files_to_move]
 
+        # Sleep until the gdrive manager dies or we are killed
+        print("Sleeping until killed or gdrive manager process dies")
+        gdrive_manager_proc.join()
+
     except Exception:
         formatted_exc = traceback.format_exc()
         log_msg(formatted_exc)
+
+    print("Exiting...")
 
 if __name__ == "__main__":
     main()
