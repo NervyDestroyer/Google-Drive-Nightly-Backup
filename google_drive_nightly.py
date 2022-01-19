@@ -86,7 +86,7 @@ def main():
             [shutil.move(os.path.join(SYNC_DIR, f), MOVE_DIR) for f in files_to_move]
 
         # Sleep until the gdrive manager dies or we are killed
-        print("Sleeping until killed or gdrive manager process dies")
+        log_msg("Sleeping until killed or gdrive manager process dies")
         gdrive_manager_proc.join()
 
     except Exception:
