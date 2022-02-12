@@ -1,4 +1,5 @@
 import subprocess
+import traceback
 
 from .log import setup_logging, log_msg
 
@@ -24,9 +25,9 @@ TIMEOUT_12HOURS = 12 * 60 * 60
 # Google Drive Desktop proc
 def start_and_manage_gdrive(pipe_conn, gdrive_desktop_path):
     setup_logging("gdrive_manager")
-
-    gdrive_desktop = subprocess.Popen(gdrive_desktop_path)
     try:
+        gdrive_desktop = subprocess.Popen(gdrive_desktop_path)
+
         log_msg("Started Google Drive desktop")
 
         # Poll (blocking) the parent with the pipe. We assume that any message actually received
@@ -37,7 +38,10 @@ def start_and_manage_gdrive(pipe_conn, gdrive_desktop_path):
         # issues with zombie processes.
         pipe_conn.poll(TIMEOUT_12HOURS)
     except:
-        log_msg("Caught exception")
+        tb = traceback.format_exc()
+        log_msg("Caught exception. Failed pipe exception is normal and means the parent process " \
+            "initiated shutdown.")
+        log_msg(str(tb))
 
     # Initialize shutdown and cleanup
     log_msg("Killing Google Drive Desktop")

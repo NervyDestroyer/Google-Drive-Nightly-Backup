@@ -93,7 +93,7 @@ def main():
         formatted_exc = traceback.format_exc()
         log_msg(formatted_exc)
 
-    print("Exiting...")
+    log_msg("Exiting...")
 
 if __name__ == "__main__":
     main()
