@@ -39,6 +39,9 @@ MOVE_DIR = os.path.join(THIS_DIR, "sync_started_%s" % datetime.now().strftime("%
 def parse_args():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("-google_dfs_root", type=str, default="C:/Program Files/Google/Drive File Stream", \
+        help="Root of Google Drive File Stream. Defaults to the C: drive, change if you install it " \
+            "somewhere else.")
     parser.add_argument("-copy_location", type=str, default="G:/My Drive/", \
         help="Location in Google Drive to copy files to start syncing")
     parser.add_argument("--debug", action="store_true", \
@@ -66,7 +69,7 @@ def main():
         # This process will properly clean itself up after this process dies.
         # NOTE: If debug is enabled, this process is tied to our terminal window which will not work
         #   with TaskScheduler
-        gdrive_manager_proc = multiprocessing.Process(target=start_and_manage_gdrive, args=(gdrive_conn, "C:/Program Files/Google/Drive File Stream/54.0.3.0/GoogleDriveFS.exe"))
+        gdrive_manager_proc = multiprocessing.Process(target=start_and_manage_gdrive, args=(gdrive_conn, args.google_dfs_root))
         gdrive_manager_proc.start()
 
         # Wait for gdrive directory to exist (wait an additional 5 seconds afterwards just in case)

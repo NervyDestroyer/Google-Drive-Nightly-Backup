@@ -1,5 +1,7 @@
 import subprocess
 import traceback
+import os
+import re
 
 from .log import setup_logging, log_msg
 
@@ -20,12 +22,12 @@ TIMEOUT_12HOURS = 12 * 60 * 60
 # issues, this process will initialize cleanup and shutdown after 12 hours regardless if the parent
 # has died or not.
 #
-# When the parent process dies, the garbage
-# collector will close the pipe connection which will signal to the child process to kill the
-# Google Drive Desktop proc
-def start_and_manage_gdrive(pipe_conn, gdrive_desktop_path):
+# When the parent process dies, the garbage collector will close the pipe connection which will
+# signal to the child process to kill the Google Drive Desktop proc
+def start_and_manage_gdrive(pipe_conn, gdrive_desktop_root):
     setup_logging("gdrive_manager")
     try:
+        gdrive_desktop_path = find_google_dfs_from_root(gdrive_desktop_root)
         gdrive_desktop = subprocess.Popen(gdrive_desktop_path)
 
         log_msg("Started Google Drive desktop")
@@ -48,3 +50,21 @@ def start_and_manage_gdrive(pipe_conn, gdrive_desktop_path):
     gdrive_desktop.kill()
 
     return
+
+# find_google_dfs_from_root
+# Finds the most up to date google dfs executable and returns the path to it
+def find_google_dfs_from_root(gdrive_root):
+    all_folders = \
+        [f for f in os.listdir(gdrive_root) if os.path.isdir(os.path.join(gdrive_root, f))]
+
+    # Get all folders of the form %d.%d.%d.%d (what Google names their versions under the root dir)
+    regex = "[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+$"
+    versions = sorted([f for f in all_folders if bool(re.match(regex, f))])
+
+    versions = [os.path.join(gdrive_root, f) for f in versions]
+
+    if(len(versions) == 0):
+        raise ValueError("No GoogleFS versions detected...")
+
+    # Since we sorted, most up to date version will be the first entry
+    return os.path.join(versions[0], "GoogleDriveFS.exe")
