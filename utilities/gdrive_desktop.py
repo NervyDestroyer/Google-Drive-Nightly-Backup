@@ -28,6 +28,9 @@ def start_and_manage_gdrive(pipe_conn, gdrive_desktop_root):
     setup_logging("gdrive_manager")
     try:
         gdrive_desktop_path = find_google_dfs_from_root(gdrive_desktop_root)
+
+        log_msg("Google Drive Binary: %s" % gdrive_desktop_path)
+
         gdrive_desktop = subprocess.Popen(gdrive_desktop_path)
 
         log_msg("Started Google Drive desktop")
