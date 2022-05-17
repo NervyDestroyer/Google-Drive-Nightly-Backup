@@ -69,5 +69,5 @@ def find_google_dfs_from_root(gdrive_root):
     if(len(versions) == 0):
         raise ValueError("No GoogleFS versions detected...")
 
-    # Since we sorted, most up to date version will be the first entry
-    return os.path.join(versions[0], "GoogleDriveFS.exe")
+    # Since we sorted, most up to date version will be the last entry
+    return os.path.join(versions[-1], "GoogleDriveFS.exe")
