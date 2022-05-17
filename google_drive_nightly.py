@@ -77,8 +77,8 @@ def main():
         while(not os.path.exists(args.copy_location)):
             time.sleep(1)
 
-        log_msg("Gdrive directory found, sleeping an additional 10 seconds (for sanity)")
-        time.sleep(10)
+        log_msg("Gdrive directory found, sleeping an additional 5 seconds (for sanity)")
+        time.sleep(5)
 
         # First copy all files in ToSync and move them to a separate dir (one time copies)
         sync_folders(SYNC_DIR, args.copy_location)
