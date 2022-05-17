@@ -5,8 +5,8 @@ import re
 
 from .log import setup_logging, log_msg
 
-# Timeout for 12 hours in seconds
-TIMEOUT_12HOURS = 12 * 60 * 60
+# Timeout for 8 hours in seconds
+TIMEOUT_8HOURS = 8 * 60 * 60
 
 # start_and_manage_gdrive
 #
@@ -19,7 +19,7 @@ TIMEOUT_12HOURS = 12 * 60 * 60
 # We need pythonw.exe because TaskScheduler will kill the terminal window which also includes
 # this process. In order to properly clean up and kill Google Drive Desktop, we use pythonw.exe
 # which detaches the python process from the terminal. In order to mitigate potential security
-# issues, this process will initialize cleanup and shutdown after 12 hours regardless if the parent
+# issues, this process will initialize cleanup and shutdown after 8 hours regardless if the parent
 # has died or not.
 #
 # When the parent process dies, the garbage collector will close the pipe connection which will
@@ -39,9 +39,9 @@ def start_and_manage_gdrive(pipe_conn, gdrive_desktop_root):
         # indicates shutdown. If an exception occurs the parent process closed the connection
         # due to shutdown or other. Either way, we initiate shutdown.
         #
-        # If 12 hours have passed (timeout), we initialize shutdown to avoid potential security
+        # If 8 hours have passed (timeout), we initialize shutdown to avoid potential security
         # issues with zombie processes.
-        pipe_conn.poll(TIMEOUT_12HOURS)
+        pipe_conn.poll(TIMEOUT_8HOURS)
     except:
         tb = traceback.format_exc()
         log_msg("Caught exception. Failed pipe exception is normal and means the parent process " \
